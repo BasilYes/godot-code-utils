@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://d3kj5wofhkkn"]
 
-[ext_resource type="Script" uid="uid://dx3btq4m0evjn" path="res://addons/godot-fast-code/property_list.gd" id="1_b7yft"]
+[ext_resource type="Script" uid="uid://dx3btq4m0evjn" path="res://addons/godot-code-utils/property_list/property_list.gd" id="1_b7yft"]
 
 [node name="PropertyList" type="Control"]
 layout_mode = 3

@@ -2,14 +2,14 @@ extends VBoxContainer
 
 @onready var children_v_box: VBoxContainer = $MarginContainer/ChildrenVBox
 
-@export var state: EMStateTreeNode = null
+@export var state: CUStateTreeNode = null
 
 
 func _ready() -> void:
 	$HBoxContainer/CheckBox.text = state.name
 	#$HBoxContainer/Label.text = state.name
 	for i in state.get_children():
-		if i is EMStateTreeNode:
+		if i is CUStateTreeNode:
 			var new: = preload("uid://chh6i48wv8iix").instantiate()
 			new.state = i
 			$MarginContainer/ChildrenVBox.add_child(new)

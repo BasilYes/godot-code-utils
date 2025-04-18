@@ -1,4 +1,4 @@
-class_name EMStateTreeNode
+class_name CUStateTreeNode
 extends Node
 
 signal enter
@@ -20,7 +20,7 @@ signal exit
 			_enter_state()
 			enter.emit()
 			set_process_mode(Node.PROCESS_MODE_INHERIT)
-			if not get_parent() is EMStateTreeNode and is_node_ready():
+			if not get_parent() is CUStateTreeNode and is_node_ready():
 				get_tree().physics_frame.connect(_process_state)
 		else:
 			if multiple_substates:
@@ -32,25 +32,25 @@ signal exit
 			_exit_state()
 			exit.emit()
 			set_process_mode(Node.PROCESS_MODE_DISABLED)
-			if not get_parent() is EMStateTreeNode and is_node_ready():
+			if not get_parent() is CUStateTreeNode and is_node_ready():
 				get_tree().physics_frame.disconnect(_process_state)
 
 ## Contains all child nodes that are also EMStateTreeNodes
 ## This array is populated automatically during _ready()
-var children: Array[EMStateTreeNode]
+var children: Array[CUStateTreeNode]
 
 ## Reference to the currently active child state
 ## Only applicable when multiple_substates is false
-var active_substate: EMStateTreeNode = null
+var active_substate: CUStateTreeNode = null
 
 
 func _ready() -> void:
 	# Collect all child states
 	for i:Node in get_children():
-		if i is EMStateTreeNode:
+		if i is CUStateTreeNode:
 			children.append(i)
 	# Child states start inactive by default
-	if not get_parent() is EMStateTreeNode:
+	if not get_parent() is CUStateTreeNode:
 		active = true
 	# Root states connect to physics frame for processing
 	elif active:
@@ -75,7 +75,7 @@ func _exit_state() -> void:
 func _process_state() -> void:
 	if not children:
 		return
-	for i:EMStateTreeNode in children:
+	for i:CUStateTreeNode in children:
 		# Skip states that aren't activable
 		if not i._activable():
 			if i.active:

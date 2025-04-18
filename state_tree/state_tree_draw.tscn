@@ -1,11 +1,11 @@
 [gd_scene load_steps=2 format=3 uid="uid://chh6i48wv8iix"]
 
-[ext_resource type="Script" uid="uid://c2c0fyyhibugh" path="res://addons/godot-easy-multiplayer/state_tree/state_tree.gd" id="1_5y6vp"]
+[ext_resource type="Script" uid="uid://5uq80gtbwlpj" path="res://addons/godot-code-utils/state_tree/state_tree_node.gd" id="1_dw7qw"]
 
 [node name="StateTree" type="VBoxContainer"]
 offset_right = 471.0
 offset_bottom = 387.0
-script = ExtResource("1_5y6vp")
+script = ExtResource("1_dw7qw")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
