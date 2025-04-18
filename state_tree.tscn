@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://chh6i48wv8iix"]
+
+[ext_resource type="Script" uid="uid://c2c0fyyhibugh" path="res://addons/godot-easy-multiplayer/state_tree/state_tree.gd" id="1_5y6vp"]
+
+[node name="StateTree" type="VBoxContainer"]
+offset_right = 471.0
+offset_bottom = 387.0
+script = ExtResource("1_5y6vp")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Name"
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+
+[node name="ChildrenVBox" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
