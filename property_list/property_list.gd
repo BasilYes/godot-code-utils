@@ -21,4 +21,4 @@ func _process(_delta: float) -> void:
 		return
 	for i in properties.size():
 		$VBoxContainer.get_child(i).get_node("./NameLabel").text = properties[i]
-		$VBoxContainer.get_child(i).get_node("./ValueLabel").text = str(target.get(properties[i]))
+		$VBoxContainer.get_child(i).get_node("./ValueLabel").text = str(target.get_indexed(properties[i]))

@@ -6,15 +6,20 @@ extends VBoxContainer
 
 
 func _ready() -> void:
-	$HBoxContainer/CheckBox.text = state.name
+	if not state:
+		if get_parent() is CUStateTreeNode:
+			state = get_parent()
+		else:
+			return
+	%CheckBox.text = state.name
 	#$HBoxContainer/Label.text = state.name
 	for i in state.get_children():
 		if i is CUStateTreeNode:
 			var new: = preload("uid://chh6i48wv8iix").instantiate()
 			new.state = i
-			$MarginContainer/ChildrenVBox.add_child(new)
+			%ChildrenVBox.add_child(new)
 
 
 func _process(delta: float) -> void:
 	if state:
-		$HBoxContainer/CheckBox.button_pressed = state.active
+		%CheckBox.button_pressed = state.active

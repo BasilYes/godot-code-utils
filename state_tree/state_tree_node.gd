@@ -1,8 +1,8 @@
 class_name CUStateTreeNode
 extends Node
 
-signal enter
-signal exit
+signal entered
+signal exited
 
 ## Controls whether multiple child states can be active simultaneously
 ## If true, allows multiple active substates at the same time
@@ -17,8 +17,8 @@ signal exit
 			return
 		active = value
 		if active:
-			_enter_state()
-			enter.emit()
+			_entering_state()
+			entered.emit()
 			set_process_mode(Node.PROCESS_MODE_INHERIT)
 			if not get_parent() is CUStateTreeNode and is_node_ready():
 				get_tree().physics_frame.connect(_process_state)
@@ -28,9 +28,9 @@ signal exit
 					i.active = false
 			elif active_substate:
 				active_substate.active = false
+				exited.connect(active_substate._exited, CONNECT_ONE_SHOT)
 				active_substate = null
-			_exit_state()
-			exit.emit()
+			_exiting_state()
 			set_process_mode(Node.PROCESS_MODE_DISABLED)
 			if not get_parent() is CUStateTreeNode and is_node_ready():
 				get_tree().physics_frame.disconnect(_process_state)
@@ -59,13 +59,17 @@ func _ready() -> void:
 
 ## Virtual method called when this state is activated
 ## Override this method to define behavior when entering this state
-func _enter_state() -> void:
+func _entering_state() -> void:
 	pass
 
 
 ## Virtual method called when this state is deactivated
 ## Override this method to define cleanup when exiting this state
-func _exit_state() -> void:
+func _exiting_state() -> void:
+	pass
+
+
+func _exited_state() -> void:
 	pass
 
 
@@ -81,8 +85,6 @@ func _process_state() -> void:
 			if i.active:
 				if i._deactivable():
 					i.active = false
-					if not multiple_substates:
-						active_substate = null
 				else:
 					i._process_state()
 					if not multiple_substates:
@@ -104,12 +106,20 @@ func _process_state() -> void:
 		i._process_state()
 		# Update active substate reference and exit (for single state mode)
 		if not multiple_substates:
+			if active_substate:
+				active_substate._exited()
 			active_substate = i
 			return
 	# No activable states found, deactivate current if any
 	if active_substate:
 		active_substate.active = false
+		active_substate._exited()
 		active_substate = null
+
+
+func _exited() -> void:
+	_exited_state()
+	exited.emit()
 
 
 ## Virtual method that determines if this state can be activated
