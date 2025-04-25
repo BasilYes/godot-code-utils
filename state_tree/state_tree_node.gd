@@ -3,6 +3,7 @@ extends Node
 
 signal entered
 signal exited
+signal processed
 
 ## Controls whether multiple child states can be active simultaneously
 ## If true, allows multiple active substates at the same time
@@ -77,6 +78,11 @@ func _exited_state() -> void:
 ## Called on physics frame if this is a root state
 ## Otherwise called by parent EMStateTreeNode when this state is active
 func _process_state() -> void:
+	_process_substates()
+	processed.emit()
+
+
+func _process_substates() -> void:
 	if not children:
 		return
 	for i:CUStateTreeNode in children:
