@@ -3,7 +3,6 @@ extends Node
 
 signal entered
 signal exited
-signal processed
 
 ## Controls whether multiple child states can be active simultaneously
 ## If true, allows multiple active substates at the same time
@@ -18,27 +17,24 @@ signal processed
 			return
 		active = value
 		if active:
-			_entering_state()
-			entered.emit()
 			set_process_mode(Node.PROCESS_MODE_INHERIT)
-			if not get_parent() is CUStateTreeNode and is_node_ready():
-				get_tree().physics_frame.connect(_process_state)
+			_enter()
+			entered.emit()
+			if not get_parent() is CUStateTreeNode:
+				get_tree().physics_frame.connect(_process_substates)
 		else:
 			if multiple_substates:
-				for i in children:
+				for i:Node in get_children():
+					if not i is CUStateTreeNode:
+						continue
 					i.active = false
 			elif active_substate:
 				active_substate.active = false
-				exited.connect(active_substate._exited, CONNECT_ONE_SHOT)
 				active_substate = null
-			_exiting_state()
+			_exit()
 			set_process_mode(Node.PROCESS_MODE_DISABLED)
-			if not get_parent() is CUStateTreeNode and is_node_ready():
-				get_tree().physics_frame.disconnect(_process_state)
-
-## Contains all child nodes that are also EMStateTreeNodes
-## This array is populated automatically during _ready()
-var children: Array[CUStateTreeNode]
+			if not get_parent() is CUStateTreeNode:
+				get_tree().physics_frame.disconnect(_process_substates)
 
 ## Reference to the currently active child state
 ## Only applicable when multiple_substates is false
@@ -46,87 +42,25 @@ var active_substate: CUStateTreeNode = null
 
 
 func _ready() -> void:
-	# Collect all child states
-	for i:Node in get_children():
-		if i is CUStateTreeNode:
-			children.append(i)
-	# Child states start inactive by default
+	# Set active if root state, set process priority to process before parent
 	if not get_parent() is CUStateTreeNode:
 		active = true
-	# Root states connect to physics frame for processing
-	elif active:
-		get_tree().physics_frame.connect(_process_state)
-		_process_state()
+		_process_substates()
+		process_priority = get_parent().process_priority - 1
+		process_physics_priority = get_parent().process_physics_priority - 1
+	else:
+		process_priority = get_parent().process_priority
+		process_physics_priority = get_parent().process_physics_priority
 
 ## Virtual method called when this state is activated
-## Override this method to define behavior when entering this state
-func _entering_state() -> void:
+## Override this method to define behavior when entered this state
+func _enter() -> void:
 	pass
-
 
 ## Virtual method called when this state is deactivated
-## Override this method to define cleanup when exiting this state
-func _exiting_state() -> void:
+## Override this method to define cleanup when exited this state
+func _exit() -> void:
 	pass
-
-
-func _exited_state() -> void:
-	pass
-
-
-## Processes the state logic and manages child state transitions
-## Called on physics frame if this is a root state
-## Otherwise called by parent EMStateTreeNode when this state is active
-func _process_state() -> void:
-	_process_substates()
-	processed.emit()
-
-
-func _process_substates() -> void:
-	if not children:
-		return
-	for i:CUStateTreeNode in children:
-		# Skip states that aren't activable
-		if not i._activable():
-			if i.active:
-				if i._deactivable():
-					i.active = false
-				else:
-					i._process_state()
-					if not multiple_substates:
-						return
-			continue
-		# Skip if this state is already the active substate (for single state mode)
-		if i == active_substate and not multiple_substates:
-			i._process_state()
-			return
-		# Deactivate current active substate if switching (for single state mode)
-		elif active_substate and active_substate.active:
-			if active_substate._deactivable():
-				active_substate.active = false
-			else:
-				active_substate._process_state()
-				return
-		# Activate the state and process its logic
-		i.active = true
-		i._process_state()
-		# Update active substate reference and exit (for single state mode)
-		if not multiple_substates:
-			if active_substate:
-				active_substate._exited()
-			active_substate = i
-			return
-	# No activable states found, deactivate current if any
-	if active_substate:
-		active_substate.active = false
-		active_substate._exited()
-		active_substate = null
-
-
-func _exited() -> void:
-	_exited_state()
-	exited.emit()
-
 
 ## Virtual method that determines if this state can be activated
 ## Override this method to define custom activation conditions
@@ -134,6 +68,48 @@ func _exited() -> void:
 func _activable() -> bool:
 	return true
 
-
+## Virtual method that determines if this state can be deactivated
+## Override this method to define custom deactivation conditions
+## @return true if the state can be deactivated, false otherwise
 func _deactivable() -> bool:
 	return true
+
+## Manages child state transitions
+## Called before physics frame if this is a root state
+## Otherwise called by parent EMStateTreeNode when this state is active
+func _process_substates() -> void:
+	# If current single substate can't be deactivated, process this state and exit
+	if active_substate and not active_substate._deactivable() and not multiple_substates:
+		active_substate._process_substates()
+		return
+	
+	for i:Node in get_children():
+		if not i is CUStateTreeNode:
+			continue
+		# Skip states that aren't activable
+		if not i._activable():
+			if i.active:
+				if i._deactivable():
+					i.active = false
+				else:
+					i._process_substates()
+			continue
+
+		# Deactivate current active substate if switching (for single state mode)
+		if active_substate and i != active_substate and not multiple_substates:
+			active_substate.active = false
+			active_substate = null
+
+		# Activate the state and process it's substates
+		i.active = true
+		i._process_substates()
+
+		# Exit if single substate
+		if not multiple_substates:
+			active_substate = i
+			return
+
+	# No activable states found, deactivate current if any
+	if active_substate:
+		active_substate.active = false
+		active_substate = null

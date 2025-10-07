@@ -6,18 +6,25 @@ extends VBoxContainer
 
 
 func _ready() -> void:
+	var root: Node = null
 	if not state:
 		if get_parent() is CUStateTreeNode:
 			state = get_parent()
 		else:
-			return
-	%CheckBox.text = state.name
-	#$HBoxContainer/Label.text = state.name
-	for i in state.get_children():
+			root = get_parent()
+	%CheckBox.disabled = true
+	if state:
+		%CheckBox.text = state.name
+	else:
+		%CheckBox.text = "StatesRooot"
+		$HBoxContainer.visible = false
+		($MarginContainer as MarginContainer).set(&"theme_override_constants/margin_left", 0)
+	for i in state.get_children() if state else get_parent().get_children():
 		if i is CUStateTreeNode:
 			var new: = preload("uid://chh6i48wv8iix").instantiate()
 			new.state = i
 			%ChildrenVBox.add_child(new)
+	#$HBoxContainer/Label.text = state.name
 
 
 func _process(delta: float) -> void:
