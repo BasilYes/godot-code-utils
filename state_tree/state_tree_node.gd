@@ -49,6 +49,8 @@ func _ready() -> void:
 		process_priority = get_parent().process_priority - 1
 		process_physics_priority = get_parent().process_physics_priority - 1
 	else:
+		if not active:
+			set_process_mode(Node.PROCESS_MODE_DISABLED)
 		process_priority = get_parent().process_priority
 		process_physics_priority = get_parent().process_physics_priority
 
