@@ -40,7 +40,6 @@ signal exited
 ## Only applicable when multiple_substates is false
 var active_substate: CUStateTreeNode = null
 
-
 func _ready() -> void:
 	# Set active if root state, set process priority to process before parent
 	if not get_parent() is CUStateTreeNode:
@@ -84,7 +83,7 @@ func _process_substates() -> void:
 	if active_substate and not active_substate._deactivable() and not multiple_substates:
 		active_substate._process_substates()
 		return
-	
+
 	for i:Node in get_children():
 		if not i is CUStateTreeNode:
 			continue
@@ -95,6 +94,9 @@ func _process_substates() -> void:
 					i.active = false
 				else:
 					i._process_substates()
+					if not multiple_substates:
+						active_substate = i
+						return
 			continue
 
 		# Deactivate current active substate if switching (for single state mode)
