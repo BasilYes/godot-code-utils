@@ -44,14 +44,21 @@ func _ready() -> void:
 	# Set active if root state, set process priority to process before parent
 	if not get_parent() is CUStateTreeNode:
 		active = true
-		_process_substates()
 		process_priority = get_parent().process_priority - 1
 		process_physics_priority = get_parent().process_physics_priority - 1
+		_set_priority_rec()
+		_process_substates()
 	else:
 		if not active:
 			set_process_mode(Node.PROCESS_MODE_DISABLED)
-		process_priority = get_parent().process_priority
-		process_physics_priority = get_parent().process_physics_priority
+
+func _set_priority_rec() -> void:
+	for i in get_children():
+		if i is not CUStateTreeNode:
+			continue
+		i.process_priority = process_priority
+		i.process_physics_priority = process_physics_priority
+		i._set_priority_rec()
 
 ## Virtual method called when this state is activated
 ## Override this method to define behavior when entered this state
